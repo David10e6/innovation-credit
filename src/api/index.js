@@ -218,7 +218,32 @@ export const creditRuleAPI = {
             msg: 'success',
             data: {
               activityTypes: [],
-              levels: []
+              levels: [],
+              creditRules: []
+            }
+          };
+        }
+        throw error;
+      });
+  },
+  // 根据活动类型、级别、名次获取学分规则
+  getCreditRule: (params) => {
+    console.log('获取学分规则，参数:', params);
+    return api.get('/api/credit-rule/calculate', { params })
+      .then(response => {
+        console.log('获取学分规则API响应:', response);
+        return response;
+      })
+      .catch(error => {
+        console.error('获取学分规则API请求错误:', error);
+        // 如果是500错误，返回默认学分
+        if (error.response && error.response.status === 500) {
+          console.log('后端返回500错误，返回默认学分');
+          return {
+            code: 200,
+            msg: 'success',
+            data: {
+              credit: 0.1
             }
           };
         }
@@ -836,6 +861,20 @@ export const excelAPI = {
       })
       .catch(error => {
         console.error('验证Excel API请求错误:', error);
+        throw error;
+      });
+  },
+  // 解析Excel文件并返回预览数据（不入库）
+  parseExcelPreview: (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/api/excel/parse', formData)
+      .then(response => {
+        console.log('解析Excel预览 API响应:', response);
+        return response;
+      })
+      .catch(error => {
+        console.error('解析Excel预览 API请求错误:', error);
         throw error;
       });
   }

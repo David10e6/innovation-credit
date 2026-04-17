@@ -62,6 +62,42 @@
         />
       </el-form-item>
     </el-form>
+    
+    <!-- 参与者管理 -->
+    <div class="participants-section">
+      <div class="section-header">
+        <h4>参与者管理 ({{ form.participants?.length || 0 }})</h4>
+        <div class="action-buttons">
+          <el-upload
+            class="upload-demo"
+            action=""
+            :auto-upload="false"
+            :on-change="handleFileChange"
+            accept=".xlsx"
+            :show-file-list="false"
+          >
+            <el-button type="success" size="small">Excel批量导入</el-button>
+          </el-upload>
+          <el-button type="primary" size="small" @click="openParticipantSelect">添加参与者</el-button>
+        </div>
+      </div>
+      
+      <div v-if="form.participants && form.participants.length > 0" class="participants-list">
+        <el-tag
+          v-for="(participant, index) in form.participants"
+          :key="participant.studentId || participant['学号'] || participant.id || index"
+          closable
+          @close="removeParticipant(index)"
+          style="margin: 5px"
+        >
+          {{ participant.studentName || participant.name || participant['姓名'] }} ({{ participant.studentId || participant['学号'] || participant.id }})
+        </el-tag>
+      </div>
+      
+      <div v-else class="empty-participants">
+        暂无参与者，请点击上方按钮添加
+      </div>
+    </div>
   </div>
 </template>
 
@@ -75,7 +111,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'open-participant-select', 'import-excel'])
 
 const formRef = ref(null)
 
@@ -90,7 +126,8 @@ const form = reactive({
   applicationDeadline: '',
   startTime: '',
   endTime: '',
-  organizer: ''
+  organizer: '',
+  participants: []
 })
 
 const rules = {
@@ -129,6 +166,21 @@ watch(() => props.modelValue, (newValue) => {
 watch(form, (newValue) => {
   emit('update:modelValue', { ...newValue })
 }, { deep: true })
+
+// 打开参与者选择对话框
+const openParticipantSelect = () => {
+  emit('open-participant-select')
+}
+
+// 处理文件选择
+const handleFileChange = (file) => {
+  emit('import-excel', file.raw)
+}
+
+// 移除参与者
+const removeParticipant = (index) => {
+  form.participants.splice(index, 1)
+}
 
 // 验证表单
 defineExpose({

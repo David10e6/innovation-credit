@@ -35,7 +35,7 @@
               :class="{ 'hovered': hoveredIndex === index }"
               :style="{ 
                 width: (item.applyCredit / 10 * 100) + '%',
-                backgroundColor: getColor(index),
+                backgroundImage: getGradient(index),
                 zIndex: hoveredIndex === index ? 10 : 1
               }"
               @mouseenter="hoveredIndex = index"
@@ -55,7 +55,7 @@
               class="legend-item"
               @click="showActivityDetail(item)"
             >
-              <span class="legend-color" :style="{ backgroundColor: getColor(index) }"></span>
+              <span class="legend-color" :style="{ backgroundImage: getGradient(index) }"></span>
               <span class="legend-text">{{ item.activityName }} ({{ item.applyCredit }}分)</span>
             </div>
           </div>
@@ -157,23 +157,42 @@ const currentActivity = ref({
   applyCredit: 0
 })
 
-// 颜色数组
-const colors = [
-  '#409EFF',
-  '#67C23A',
-  '#E6A23C',
-  '#F56C6C',
-  '#909399',
-  '#00CED1',
-  '#FF69B4',
-  '#9370DB',
-  '#20B2AA',
-  '#FF7F50'
+// 渐变色数组
+const gradients = [
+  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+  'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+  'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+  'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+  'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
 ]
 
-// 获取颜色
-const getColor = (index) => {
-  return colors[index % colors.length]
+// 单一颜色数组（用于图例）
+const solidColors = [
+  '#667eea',
+  '#f093fb',
+  '#4facfe',
+  '#43e97b',
+  '#fa709a',
+  '#a18cd1',
+  '#ffecd2',
+  '#ff9a9e',
+  '#a8edea',
+  '#ffecd2'
+]
+
+// 获取渐变色
+const getGradient = (index) => {
+  return gradients[index % gradients.length]
+}
+
+// 获取单一颜色
+const getSolidColor = (index) => {
+  return solidColors[index % solidColors.length]
 }
 
 // 显示活动详情
@@ -283,7 +302,22 @@ onMounted(() => {
 
 <style scoped>
 .student-home {
-  padding: 20px;
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: calc(100vh - 48px);
+}
+
+.student-home .el-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: none;
+}
+
+.student-home .el-card__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px;
 }
 
 .card-header {
@@ -292,29 +326,65 @@ onMounted(() => {
   align-items: center;
 }
 
+.card-header span {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  padding-left: 12px;
+  border-left: 4px solid rgba(255, 255, 255, 0.6);
+}
+
 .info-section {
   margin-top: 20px;
 }
 
+.info-section .el-descriptions {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.info-section .el-descriptions__label {
+  font-weight: 500;
+  color: #606266;
+  background-color: #f5f7fa;
+}
+
+.credit-overview {
+  padding: 10px 0;
+}
+
 .progress-container {
-  padding: 20px 0;
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef2f7 100%);
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
 }
 
 .progress-header {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   color: #303133;
+  display: flex;
+  align-items: center;
+}
+
+.progress-header span {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .progress-bar {
   display: flex;
-  height: 60px;
-  background-color: #f5f7fa;
-  border-radius: 10px;
+  height: 70px;
+  background-color: white;
+  border-radius: 12px;
   overflow: visible;
-  margin-bottom: 20px;
-  padding: 5px 0;
+  margin-bottom: 24px;
+  padding: 6px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .progress-segment {
@@ -325,57 +395,126 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  margin: 0 2px;
+}
+
+.progress-segment:first-child {
+  margin-left: 0;
+}
+
+.progress-segment:last-child {
+  margin-right: 0;
 }
 
 .progress-segment.hovered {
-  transform: scaleY(1.25) scaleX(1.02);
-  filter: brightness(1.05);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transform: scaleY(1.3) scaleX(1.03);
+  filter: brightness(1.1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
   z-index: 100;
 }
 
 .segment-label {
   color: white;
   font-weight: bold;
-  font-size: 14px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-size: 15px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .progress-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 16px;
+  margin-top: 8px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .legend-item:hover {
   background-color: #f5f7fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  margin-right: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .legend-text {
   font-size: 14px;
   color: #606266;
+  font-weight: 500;
 }
 
 .empty-state {
-  margin-top: 50px;
+  margin-top: 60px;
   text-align: center;
+  padding: 40px 0;
+}
+
+.student-home .el-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.student-home .el-table__header-wrapper th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.student-home .el-table__row:hover {
+  background-color: #f5f7fa;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+  .student-home {
+    padding: 12px;
+  }
+  
+  .progress-container {
+    padding: 16px;
+  }
+  
+  .progress-bar {
+    height: 50px;
+  }
+  
+  .segment-label {
+    font-size: 12px;
+  }
+  
+  .legend-item {
+    padding: 6px 10px;
+  }
+  
+  .legend-text {
+    font-size: 13px;
+  }
+  
+  .student-home .el-table {
+    font-size: 12px;
+  }
+  
+  .student-home .el-table th,
+  .student-home .el-table td {
+    padding: 10px 8px;
+  }
 }
 </style>

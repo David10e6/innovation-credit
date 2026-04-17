@@ -1,7 +1,9 @@
 <template>
   <div class="login-container">
     <div class="login-form">
-      <h2>创新学分管理系统</h2>
+      <div class="login-header">
+        <h2>创新学分管理系统</h2>
+      </div>
       <el-form :model="loginForm" :rules="rules" ref="loginFormRef" label-width="80px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="loginForm.username" placeholder="请输入用户名"></el-input>
@@ -98,20 +100,45 @@ const handleLogin = async () => {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f5f7fa;
+  background-color: #ffffff;
+  position: relative;
+  overflow: hidden;
 }
+
+
 
 .login-form {
-  width: 400px;
-  padding: 30px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  width: 460px;
+  padding: 40px;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 10;
+  animation: slideIn 0.5s ease-out;
 }
 
-.login-form h2 {
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.login-header h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 0;
   color: #303133;
 }
 
@@ -121,5 +148,18 @@ const handleLogin = async () => {
 
 .el-button {
   width: 100%;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+  .login-form {
+    width: 90%;
+    padding: 30px 24px;
+    margin: 20px;
+  }
+  
+  .login-header h2 {
+    font-size: 22px;
+  }
 }
 </style>

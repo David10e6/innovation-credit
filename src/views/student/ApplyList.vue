@@ -140,7 +140,21 @@ onMounted(() => {
 
 <style scoped>
 .apply-list {
-  padding: 20px;
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: calc(100vh - 48px);
+}
+
+.apply-list .el-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.apply-list .el-card__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px;
 }
 
 .card-header {
@@ -149,8 +163,63 @@ onMounted(() => {
   align-items: center;
 }
 
+.card-header span {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  padding-left: 12px;
+  border-left: 4px solid rgba(255, 255, 255, 0.6);
+}
+
+.apply-list .el-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.apply-list .el-table__header-wrapper th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.apply-list .el-table__row:hover {
+  background-color: #f5f7fa;
+}
+
+.apply-list .el-button {
+  transition: all 0.3s ease;
+}
+
+.apply-list .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .empty-state {
-  margin-top: 50px;
+  margin-top: 60px;
   text-align: center;
+  padding: 40px 0;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+  .apply-list {
+    padding: 12px;
+  }
+  
+  .apply-list .el-table {
+    font-size: 12px;
+  }
+  
+  .apply-list .el-table th,
+  .apply-list .el-table td {
+    padding: 10px 8px;
+  }
+  
+  .apply-list .el-button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
 }
 </style>

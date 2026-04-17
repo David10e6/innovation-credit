@@ -1,10 +1,11 @@
 <template>
-  <el-card shadow="hover">
-    <template #header>
-      <div class="card-header">
-        <span style="font-size: 16px; font-weight: bold;">消息通知</span>
-      </div>
-    </template>
+  <div class="school-notice">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>消息通知</span>
+        </div>
+      </template>
     <div class="notice-tabs">
       <el-tabs v-model="activeTab">
         <el-tab-pane label="学院通知" name="college">
@@ -79,7 +80,8 @@
         </span>
       </template>
     </el-dialog>
-  </el-card>
+    </el-card>
+  </div>
 </template>
 
 <script setup>
@@ -153,10 +155,36 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.school-notice {
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: calc(100vh - 48px);
+}
+
+.school-notice .el-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.school-notice .el-card__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.card-header span {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  padding-left: 12px;
+  border-left: 4px solid rgba(255, 255, 255, 0.6);
 }
 
 .notice-list {
@@ -164,21 +192,37 @@ onMounted(() => {
 }
 
 .el-timeline-item {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .notice-card {
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .notice-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.notice-card h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.notice-card p {
+  margin: 0;
+  color: #606266;
+  line-height: 1.6;
 }
 
 .detail-info {
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   margin-bottom: 15px;
   font-size: 14px;
@@ -190,5 +234,24 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+  .school-notice {
+    padding: 12px;
+  }
+  
+  .notice-card {
+    padding: 12px;
+  }
+  
+  .notice-card h3 {
+    font-size: 14px;
+  }
+  
+  .notice-card p {
+    font-size: 13px;
+  }
 }
 </style>

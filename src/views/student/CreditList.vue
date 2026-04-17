@@ -94,7 +94,21 @@ onMounted(() => {
 
 <style scoped>
 .credit-list {
-  padding: 20px;
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: calc(100vh - 48px);
+}
+
+.credit-list .el-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.credit-list .el-card__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px;
 }
 
 .card-header {
@@ -103,8 +117,49 @@ onMounted(() => {
   align-items: center;
 }
 
+.card-header span {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  padding-left: 12px;
+  border-left: 4px solid rgba(255, 255, 255, 0.6);
+}
+
+.credit-list .el-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.credit-list .el-table__header-wrapper th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.credit-list .el-table__row:hover {
+  background-color: #f5f7fa;
+}
+
 .empty-state {
-  margin-top: 50px;
+  margin-top: 60px;
   text-align: center;
+  padding: 40px 0;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+  .credit-list {
+    padding: 12px;
+  }
+  
+  .credit-list .el-table {
+    font-size: 12px;
+  }
+  
+  .credit-list .el-table th,
+  .credit-list .el-table td {
+    padding: 10px 8px;
+  }
 }
 </style>

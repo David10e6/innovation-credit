@@ -11,10 +11,62 @@
         <!-- 活动选择区 -->
         <div class="activity-section">
           <h3 class="section-title">活动选择</h3>
-          <el-table :data="activities" style="width: 100%" @row-click="handleActivityClick">
-            <el-table-column prop="name" label="活动名称" width="300"></el-table-column>
-            <el-table-column prop="credit" label="学分" width="100"></el-table-column>
-            <el-table-column prop="level" label="级别" width="100"></el-table-column>
+          
+          <!-- 搜索区域 -->
+          <div class="search-form">
+            <el-form :inline="true" :model="searchForm">
+              <el-form-item label="活动名称">
+                <el-input v-model="searchForm.name" placeholder="请输入活动名称" clearable @input="handleSearchActivities"></el-input>
+              </el-form-item>
+              <el-form-item label="活动等级">
+                <el-select v-model="searchForm.level" placeholder="请选择活动等级" clearable @change="handleSearchActivities">
+                  <el-option label="院级" value="院级"></el-option>
+                  <el-option label="校级" value="校级"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="主办学院">
+                <el-select v-model="searchForm.collegeId" placeholder="请选择主办学院" clearable @change="handleSearchActivities">
+                  <el-option 
+                    v-for="college in colleges" 
+                    :key="college.id" 
+                    :label="college.name" 
+                    :value="college.id"
+                  ></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" @click="handleResetSearch">重置</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+          
+          <el-table 
+            :data="filteredActivities" 
+            style="width: 100%" 
+            @row-click="handleActivityClick"
+            :highlight-current-row="true"
+            :row-class-name="tableRowClassName"
+          >
+            <el-table-column prop="name" label="活动名称" min-width="200"></el-table-column>
+            <el-table-column prop="credit" label="学分" width="100" align="center">
+              <template #default="scope">
+                <span class="credit-tag">{{ scope.row.credit }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="level" label="级别" width="100" align="center">
+              <template #default="scope">
+                <el-tag :type="scope.row.level === '校级' ? 'danger' : 'primary'" size="small">
+                  {{ scope.row.level }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="主办学院" min-width="150">
+              <template #default="scope">
+                <span class="organizer-text">
+                  {{ scope.row.organizer || scope.row.collegeName || '未设置' }}
+                </span>
+              </template>
+            </el-table-column>
           </el-table>
         </div>
         
@@ -39,13 +91,30 @@
           <div v-if="selectedFile" class="file-info">
             已选择文件: {{ selectedFile.name }}
           </div>
-          <el-table :data="participants" style="width: 100%">
-            <el-table-column prop="studentId" label="学号" width="150"></el-table-column>
-            <el-table-column prop="name" label="姓名" width="120"></el-table-column>
-            <el-table-column prop="className" label="班级" width="150"></el-table-column>
-            <el-table-column label="操作" width="120" fixed="right">
+          <el-table 
+            :data="participants" 
+            style="width: 100%"
+            :stripe="true"
+          >
+            <el-table-column prop="studentId" label="学号" min-width="140"></el-table-column>
+            <el-table-column label="姓名" min-width="100">
               <template #default="scope">
-                <el-button type="danger" size="small" @click="handleDelete(scope.row.studentId)">
+                <span class="participant-name">
+                  {{ scope.row.studentName || scope.row.name || scope.row['姓名'] || '-' }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="className" label="班级" min-width="140"></el-table-column>
+            <el-table-column label="操作" width="100" fixed="right" align="center">
+              <template #default="scope">
+                <el-button 
+                  type="danger" 
+                  size="small" 
+                  @click="handleDelete(scope.row.studentId)"
+                >
+                  <template #icon>
+                    <Delete />
+                  </template>
                   删除
                 </el-button>
               </template>
@@ -102,12 +171,46 @@
 <script setup>
 import { ref, onMounted, watchEffect, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { activityAPI, excelAPI } from '../../api'
+import { Delete } from '@element-plus/icons-vue'
+import { activityAPI, excelAPI, adminAPI } from '../../api'
 
 // 活动相关数据
 const activities = ref([])
+const colleges = ref([])
 const selectedActivity = ref(null)
 const participants = ref([])
+
+// 搜索表单
+const searchForm = ref({
+  name: '',
+  level: '',
+  collegeId: ''
+})
+
+// 过滤后的活动
+const filteredActivities = computed(() => {
+  let result = activities.value
+  
+  if (searchForm.value.name) {
+    result = result.filter(item => 
+      item.name && item.name.includes(searchForm.value.name)
+    )
+  }
+  
+  if (searchForm.value.level) {
+    result = result.filter(item => 
+      item.level === searchForm.value.level
+    )
+  }
+  
+  if (searchForm.value.collegeId) {
+    result = result.filter(item => 
+      String(item.collegeId) === String(searchForm.value.collegeId)
+    )
+  }
+  
+  return result
+})
 
 // 学生选择弹窗相关数据
 const showStudentDialog = ref(false)
@@ -135,11 +238,38 @@ const allStudents = computed(() => {
   return students
 })
 
+// 加载学院列表
+const loadColleges = async () => {
+  try {
+    const response = await adminAPI.getCollegeList()
+    colleges.value = response.data || []
+    console.log('学院列表加载完成:', colleges.value)
+  } catch (error) {
+    console.error('加载学院列表失败:', error)
+  }
+}
+
 // 加载活动列表
 const loadActivities = async () => {
   try {
     const response = await activityAPI.getAllActivities()
-    activities.value = response.data || []
+    let activityList = response.data || []
+    
+    // 使用学院数据补充主办学院信息
+    if (colleges.value.length > 0) {
+      activityList = activityList.map(activity => {
+        // 查找对应的学院
+        const college = colleges.value.find(c => 
+          String(c.id) === String(activity.collegeId)
+        )
+        return {
+          ...activity,
+          organizer: college ? college.name : (activity.organizer || '未设置')
+        }
+      })
+    }
+    
+    activities.value = activityList
     if (activities.value.length > 0) {
       selectedActivity.value = activities.value[0]
       loadParticipants(selectedActivity.value.id)
@@ -148,6 +278,28 @@ const loadActivities = async () => {
     console.error('加载活动列表失败:', error)
     ElMessage.error('加载活动列表失败')
   }
+}
+
+// 处理活动搜索
+const handleSearchActivities = () => {
+  // 计算属性会自动处理
+}
+
+// 重置搜索
+const handleResetSearch = () => {
+  searchForm.value = {
+    name: '',
+    level: '',
+    collegeId: ''
+  }
+}
+
+// 表格行样式
+const tableRowClassName = ({ row, rowIndex }) => {
+  if (selectedActivity.value && selectedActivity.value.id === row.id) {
+    return 'selected-row'
+  }
+  return ''
 }
 
 // 加载参与者列表
@@ -441,7 +593,8 @@ const handleImport = async () => {
 }
 
 // 页面加载时初始化
-onMounted(() => {
+onMounted(async () => {
+  await loadColleges()
   loadActivities()
 })
 </script>
@@ -449,6 +602,8 @@ onMounted(() => {
 <style scoped>
 .import-participants {
   padding: 20px;
+  background: #f0f2f5;
+  min-height: 100vh;
 }
 
 .card-header {
@@ -460,52 +615,175 @@ onMounted(() => {
 
 .content-wrapper {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .activity-section {
-  flex: 1;
-  min-width: 400px;
-  margin-bottom: 20px;
-}
-
-.participants-section {
-  flex: 1;
-  min-width: 400px;
+  width: 100%;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .section-title {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
   color: #303133;
+  margin-bottom: 20px;
+  padding-left: 12px;
+  border-left: 4px solid #409eff;
+}
+
+.search-form {
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+  border-radius: 10px;
+  border: 1px solid #e0e6ed;
+}
+
+.search-form .el-form-item {
+  margin-bottom: 12px;
+  margin-right: 20px;
+}
+
+.search-form .el-input__wrapper,
+.search-form .el-select__wrapper {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  min-width: 180px;
+}
+
+.search-form .el-select {
+  min-width: 180px;
+}
+
+.search-form .el-input__wrapper:hover,
+.search-form .el-select__wrapper:hover {
+  box-shadow: 0 2px 6px rgba(64, 158, 255, 0.15);
+}
+
+.search-form .el-input__wrapper.is-focus,
+.search-form .el-select__wrapper.is-focus {
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+.activity-section .el-table {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.activity-section :deep(.el-table th) {
+  background: linear-gradient(180deg, #fafbfc 0%, #f0f2f5 100%);
+  color: #475669;
+  font-weight: 600;
+}
+
+.activity-section :deep(.el-table tr:hover > td) {
+  background-color: #f0f7ff !important;
+}
+
+.activity-section :deep(.selected-row) {
+  background-color: #ecf5ff !important;
+}
+
+.credit-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.organizer-text {
+  color: #606266;
+  font-size: 14px;
+}
+
+.participants-section {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 24px;
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
 }
 
 .action-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+}
+
+.action-buttons .el-button {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.action-buttons .el-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.participants-section .el-table {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.participants-section :deep(.el-table th) {
+  background: linear-gradient(180deg, #fafbfc 0%, #f0f2f5 100%);
+  color: #475669;
+  font-weight: 600;
+}
+
+.participants-section :deep(.el-table--striped .el-table__body tr.el-table__row--striped td) {
+  background-color: #f8fafc;
+}
+
+.participants-section :deep(.el-table tr:hover > td) {
+  background-color: #f0f7ff !important;
+}
+
+.participant-name {
+  color: #303133;
+  font-weight: 500;
 }
 
 .file-info {
-  margin-bottom: 15px;
-  padding: 10px;
-  background-color: #f0f9ff;
+  margin-bottom: 20px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e6f4ff 100%);
   border: 1px solid #b3d8ff;
-  border-radius: 4px;
+  border-radius: 10px;
   color: #409eff;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .empty-state {
-  margin-top: 30px;
+  margin-top: 40px;
   text-align: center;
+  padding: 40px;
 }
 
 .dialog-header {

@@ -50,6 +50,7 @@
       <ActivityForm
         v-model="currentActivity"
         @open-participant-select="openParticipantDialog"
+        @import-excel="handleImportExcel"
       />
       
       <template #footer>
@@ -67,9 +68,15 @@
       @confirm="handleParticipantConfirm"
     />
     
-
+    <!-- Excel导入预览对话框 -->
+    <ExcelImportPreview
+      v-model:visible="excelImportVisible"
+      :file="selectedExcelFile"
+      @confirm="handleExcelImportConfirm"
+    />
     
 
+    
   </div>
 </template>
 
@@ -80,10 +87,12 @@ import { activityAPI } from '../../api'
 import useUserStore from '../../store/user'
 import ActivityForm from '../../components/ActivityForm.vue'
 import ParticipantSelectDialog from '../../components/ParticipantSelectDialog.vue'
+import ExcelImportPreview from '../../components/ExcelImportPreview.vue'
 
 const participantDialogVisible = ref(false)
 const activityDialogVisible = ref(false)
 const participantSelectVisible = ref(false)
+const excelImportVisible = ref(false)
 const activities = ref([])
 const userStore = useUserStore()
 const isEdit = ref(false)
@@ -103,9 +112,13 @@ const currentActivity = ref({
   participants: []
 })
 
+// 编辑前的原有参与者（用于编辑时只添加新参与者）
+const originalParticipants = ref([])
+
 // 文件变量
 const singleParticipantFile = ref(null)
 const currentActivityId = ref(null)
+const selectedExcelFile = ref(null)
 
 
 
@@ -151,6 +164,7 @@ const openAddDialog = () => {
     status: '未开始',
     participants: []
   }
+  originalParticipants.value = []
   isEdit.value = false
   activityDialogVisible.value = true
 }
@@ -166,6 +180,10 @@ const openEditDialog = async (activity) => {
       ...detailResponse.data,
       participants: participantsResponse.data || []
     }
+    
+    // 保存编辑前的原有参与者
+    originalParticipants.value = [...(participantsResponse.data || [])]
+    
     isEdit.value = true
     activityDialogVisible.value = true
   } catch (error) {
@@ -179,15 +197,43 @@ const openEditDialog = async (activity) => {
 const saveActivity = async () => {
   loading.value = true
   try {
+    let savedActivityId
+    
     if (isEdit.value) {
       // 编辑活动
       await activityAPI.updateActivity(currentActivity.value)
+      savedActivityId = currentActivity.value.id
       ElMessage.success('活动编辑成功')
     } else {
       // 新增活动
-      await activityAPI.createActivity(currentActivity.value)
+      const response = await activityAPI.createActivity(currentActivity.value)
+      savedActivityId = response.data?.id || response.data
       ElMessage.success('活动新增成功')
     }
+    
+    // 处理参与者添加
+    if (currentActivity.value.participants && currentActivity.value.participants.length > 0) {
+      // 获取原有参与者的ID
+      const originalIds = new Set(originalParticipants.value.map(p => p.studentId || p))
+      
+      // 过滤出新增的参与者
+      const newParticipants = currentActivity.value.participants.filter(p => {
+        const id = p.studentId || p
+        return !originalIds.has(id)
+      })
+      
+      if (newParticipants.length > 0) {
+        const studentIds = newParticipants.map(p => p.studentId || p)
+        try {
+          await activityAPI.addParticipants(savedActivityId, studentIds)
+          ElMessage.success(`成功添加 ${studentIds.length} 名参与者`)
+        } catch (error) {
+          console.error('添加参与者失败:', error)
+          ElMessage.warning('活动保存成功，但添加参与者失败')
+        }
+      }
+    }
+    
     activityDialogVisible.value = false
     // 重新获取活动列表
     await getActivities()
@@ -253,6 +299,27 @@ const handleImportParticipants = async () => {
   } catch (error) {
     ElMessage.error('导入失败: ' + (error.message || '网络错误'))
   }
+}
+
+// 处理Excel导入
+const handleImportExcel = (file) => {
+  selectedExcelFile.value = file
+  excelImportVisible.value = true
+}
+
+// 处理Excel导入确认
+const handleExcelImportConfirm = (students) => {
+  // 合并已有的参与者和新选择的学生，去重
+  const existingIds = new Set((currentActivity.value.participants || []).map(p => p.studentId))
+  const newStudents = students.filter(s => !existingIds.has(s.studentId))
+  
+  currentActivity.value.participants = [
+    ...(currentActivity.value.participants || []),
+    ...newStudents
+  ]
+  
+  ElMessage.success(`成功添加 ${newStudents.length} 名学生`)
+  selectedExcelFile.value = null
 }
 
 onMounted(() => {

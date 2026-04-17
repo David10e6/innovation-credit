@@ -1,38 +1,137 @@
-# web
+# 创新学分管理系统 - 前端
 
-This template should help get you started developing with Vue 3 in Vite.
+> 一个基于 Vue 3 + Element Plus 的创新学分管理系统前端项目
 
-## Recommended IDE Setup
+## 📋 项目简介
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+创新学分管理系统是一个面向高校的综合学分管理平台，旨在简化学生创新学分申请、审核和统计流程。系统支持学生、辅导员、管理员三种角色，提供从学分申请、审核、统计到档案管理的完整功能闭环。
 
-## Recommended Browser Setup
+## 🏗️ 技术栈
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- **前端框架**: Vue 3.5.29
+- **UI 组件库**: Element Plus 2.13.3
+- **路由管理**: Vue Router 5.0.3
+- **状态管理**: Pinia 3.0.4
+- **HTTP 客户端**: Axios 1.13.6
+- **图表库**: ECharts 6.0.0
+- **Excel 处理**: XLSX 0.18.5
+- **构建工具**: Vite 7.3.1
 
-## Customize configuration
+## 🎯 功能特性
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 学生端
+- ✅ **首页概览** - 个人学分统计、进度条可视化、最近学分记录
+- ✅ **学分列表** - 已获得学分的详细列表和查询
+- ✅ **学分申请** - 选择活动、填写信息、上传佐证材料
+- ✅ **申请记录** - 查看申请状态和审核结果
+- ✅ **学校通知** - 接收学校发布的活动和通知
+- ✅ **个人中心** - 查看和修改个人信息
 
-## Project Setup
+### 辅导员端
+- ✅ **首页** - 统计概览和快捷操作
+- ✅ **学生列表** - 管理本班学生信息
+- ✅ **活动管理** - 管理本班相关活动
+- ✅ **申请审核** - 审核学生提交的学分申请
+- ✅ **通知管理** - 发布和管理通知
+- ✅ **学分规则** - 查看学分评定规则
 
-```sh
+### 管理员端
+- ✅ **首页** - 系统整体统计和数据可视化
+- ✅ **学生管理** - 全校学生信息管理
+- ✅ **活动管理** - 活动创建、编辑、导入
+- ✅ **导入参与者** - Excel 批量导入活动参与者
+- ✅ **学分终审** - 最终审核学分申请
+- ✅ **学分统计** - 多维度学分数据统计分析
+- ✅ **通知管理** - 发布系统通知
+- ✅ **学分规则** - 维护学分评定规则
+- ✅ **用户管理** - 管理系统用户账号
+
+## 🚀 快速开始
+
+### 环境要求
+
+- Node.js >= 20.19.0
+- npm 或 yarn
+
+### 安装依赖
+
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### 启动开发服务器
 
-```sh
+```bash
 npm run dev
 ```
 
-### Compile and Minify for Production
+### 构建生产版本
 
-```sh
+```bash
 npm run build
 ```
+
+### 预览生产构建
+
+```bash
+npm run preview
+```
+
+## 📁 项目结构
+
+```
+innovation-credit/
+├── public/                 # 静态资源
+├── src/
+│   ├── api/               # API 接口封装
+│   ├── assets/            # 静态资源
+│   ├── components/        # 公共组件
+│   ├── router/            # 路由配置
+│   ├── store/             # Pinia 状态管理
+│   ├── utils/             # 工具函数
+│   ├── views/             # 页面组件
+│   │   ├── admin/         # 管理员页面
+│   │   ├── auth/          # 认证页面
+│   │   ├── counselor/     # 辅导员页面
+│   │   └── student/       # 学生页面
+│   ├── App.vue            # 根组件
+│   └── main.js            # 入口文件
+├── index.html
+├── package.json
+├── vite.config.js
+└── README.md
+```
+
+## 🔗 后端项目
+
+本项目的后端代码已开源：
+
+📦 **后端仓库**: [https://github.com/David10e6/innovation-credit-backend](https://github.com/David10e6/innovation-credit-backend)
+
+## 📸 界面预览
+
+### 登录页面
+简洁清爽的登录界面，支持学生、辅导员、管理员三种角色选择
+
+### 学生首页
+- 学分进度条可视化
+- 当前学分统计
+- 最近学分记录
+
+### 管理员页面
+- 数据可视化图表
+- 活动管理
+- 参与者批量导入
+- 学分统计分析
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📄 许可证
+
+本项目仅供学习交流使用。
+
+---
+
+💡 如有问题，欢迎提交 Issue 反馈！

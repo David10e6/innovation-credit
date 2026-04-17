@@ -148,16 +148,36 @@ onMounted(() => {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: calc(100vh - 48px);
 }
 
-.profile-card {
-  margin-bottom: 20px;
+.profile-container .el-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  border: none;
+}
+
+.profile-container .el-card__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
+  padding: 16px 20px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.card-header span {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  padding-left: 12px;
+  border-left: 4px solid rgba(255, 255, 255, 0.6);
 }
 
 .info-section {
@@ -168,8 +188,21 @@ onMounted(() => {
 .credit-section h3 {
   margin-bottom: 15px;
   font-size: 18px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #303133;
+  padding-left: 12px;
+  border-left: 4px solid #409eff;
+}
+
+.info-section .el-descriptions {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.info-section .el-descriptions__label {
+  font-weight: 500;
+  color: #606266;
+  background-color: #f5f7fa;
 }
 
 .credit-section {
@@ -178,14 +211,17 @@ onMounted(() => {
 
 .credit-card {
   margin-top: 10px;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .credit-overview {
   display: flex;
   justify-content: space-around;
   margin-bottom: 20px;
-  padding: 20px;
-  background-color: #f5f7fa;
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef2f7 100%);
   border-radius: 8px;
 }
 
@@ -196,15 +232,16 @@ onMounted(() => {
 .credit-label {
   display: block;
   font-size: 14px;
-  color: #666;
-  margin-bottom: 5px;
+  color: #909399;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .credit-value {
   display: block;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
-  color: #333;
+  color: #303133;
 }
 
 .credit-value.acquired {
@@ -218,7 +255,23 @@ onMounted(() => {
 .credit-categories h4 {
   margin-bottom: 10px;
   font-size: 16px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+  .profile-container {
+    padding: 12px;
+  }
+  
+  .credit-overview {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .credit-value {
+    font-size: 24px;
+  }
 }
 </style>

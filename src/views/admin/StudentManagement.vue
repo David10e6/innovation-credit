@@ -1,65 +1,118 @@
 <template>
   <div class="student-management">
-    <el-card>
+    <el-card class="main-card">
       <template #header>
         <div class="card-header">
-          <span>学生信息管理</span>
+          <span class="page-title">学生信息管理</span>
         </div>
       </template>
       
       <!-- 搜索和操作区 -->
       <div class="search-and-actions">
-        <div class="search-section">
-          <el-select
-            v-model="selectedCollege"
-            placeholder="选择学院"
-            style="width: 200px; margin-right: 15px"
-            @change="handleCollegeChange"
-          >
-            <el-option
-              v-for="college in colleges"
-              :key="college.id"
-              :label="college.name"
-              :value="college.id"
-            ></el-option>
-          </el-select>
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索学号或姓名"
-            prefix-icon="el-icon-search"
-            style="width: 300px; margin-right: 15px"
-            @keyup.enter="handleSearch"
-          ></el-input>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <div class="search-form-wrapper">
+          <el-form :inline="true" :model="searchForm" class="search-form">
+            <el-form-item label="学号/姓名">
+              <el-input 
+                v-model="searchForm.keyword" 
+                placeholder="请输入学号或姓名" 
+                clearable
+                @input="handleSearch"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="学院">
+              <el-select 
+                v-model="searchForm.collegeId" 
+                placeholder="请选择学院" 
+                clearable
+                @change="handleSearch"
+              >
+                <el-option
+                  v-for="college in colleges"
+                  :key="college.id"
+                  :label="college.name"
+                  :value="college.id"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="年级">
+              <el-select 
+                v-model="searchForm.grade" 
+                placeholder="请选择年级" 
+                clearable
+                @change="handleSearch"
+              >
+                <el-option 
+                  v-for="grade in gradeOptions" 
+                  :key="grade" 
+                  :label="grade + '级'" 
+                  :value="grade"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="handleResetSearch">重置</el-button>
+            </el-form-item>
+          </el-form>
         </div>
         <div class="action-buttons">
-          <el-button type="primary" @click="showAddDialog = true">添加学生</el-button>
-          <el-button type="success" @click="showImportDialog = true">Excel导入</el-button>
+          <el-button type="primary" @click="showAddDialog = true">
+            <template #icon>
+              <Plus />
+            </template>
+            添加学生
+          </el-button>
+          <el-button type="success" @click="showImportDialog = true">
+            <template #icon>
+              <Upload />
+            </template>
+            Excel导入
+          </el-button>
         </div>
       </div>
       
       <!-- 学生列表 -->
       <div class="student-list-section">
-        <el-table :data="students" style="width: 100%" v-loading="loading">
-          <el-table-column prop="studentId" label="学号" width="150"></el-table-column>
-          <el-table-column prop="name" label="姓名" width="120"></el-table-column>
-          <el-table-column prop="major" label="专业" width="200"></el-table-column>
-          <el-table-column prop="className" label="班级" width="150"></el-table-column>
-          <el-table-column prop="grade" label="年级" width="100"></el-table-column>
-          <el-table-column prop="status" label="状态" width="100">
+        <el-table 
+          :data="filteredStudents" 
+          style="width: 100%" 
+          v-loading="loading"
+          :stripe="true"
+        >
+          <el-table-column prop="studentId" label="学号" min-width="140"></el-table-column>
+          <el-table-column prop="name" label="姓名" min-width="100">
             <template #default="scope">
-              <span>{{ scope.row.status === '1' ? '正常' : '异常' }}</span>
+              <span class="student-name">{{ scope.row.name }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column prop="major" label="专业" min-width="180"></el-table-column>
+          <el-table-column prop="className" label="班级" min-width="140"></el-table-column>
+          <el-table-column prop="grade" label="年级" width="100" align="center">
+            <template #default="scope">
+              <el-tag size="small" type="info">{{ scope.row.grade }}级</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态" width="100" align="center">
+            <template #default="scope">
+              <el-tag 
+                :type="scope.row.status === '1' ? 'success' : 'danger'" 
+                size="small"
+              >
+                {{ scope.row.status === '1' ? '正常' : '异常' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120" fixed="right" align="center">
             <template #default="scope">
               <el-button type="primary" size="small" @click="handleEdit(scope.row)">
+                <template #icon>
+                  <Edit />
+                </template>
                 编辑
               </el-button>
             </template>
           </el-table-column>
         </el-table>
-        <div v-if="!loading && students.length === 0" class="empty-state">
+        <div v-if="!loading && filteredStudents.length === 0" class="empty-state">
           <el-empty description="暂无学生数据"></el-empty>
         </div>
       </div>
@@ -164,16 +217,59 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Plus, Upload, Edit } from '@element-plus/icons-vue'
 import { adminAPI, excelAPI } from '../../api'
 
 // 数据状态
 const colleges = ref([])
 const students = ref([])
-const selectedCollege = ref(null)
-const searchKeyword = ref('')
 const loading = ref(false)
+
+// 从学生数据中提取年级选项
+const gradeOptions = computed(() => {
+  if (!students.value || students.value.length === 0) {
+    return []
+  }
+  // 提取所有唯一的年级值并排序
+  const uniqueGrades = [...new Set(students.value.map(s => s.grade).filter(g => g))]
+  return uniqueGrades.sort((a, b) => Number(b) - Number(a))
+})
+
+// 搜索表单
+const searchForm = reactive({
+  keyword: '',
+  collegeId: null,
+  grade: null
+})
+
+// 过滤后的学生列表
+const filteredStudents = computed(() => {
+  let result = students.value
+  
+  if (searchForm.keyword) {
+    const keyword = searchForm.keyword.toLowerCase()
+    result = result.filter(student => 
+      (student.studentId && student.studentId.toLowerCase().includes(keyword)) ||
+      (student.name && student.name.toLowerCase().includes(keyword))
+    )
+  }
+  
+  if (searchForm.collegeId) {
+    result = result.filter(student => 
+      String(student.collegeId) === String(searchForm.collegeId)
+    )
+  }
+  
+  if (searchForm.grade) {
+    result = result.filter(student => 
+      String(student.grade) === String(searchForm.grade)
+    )
+  }
+  
+  return result
+})
 
 // 弹窗状态
 const showAddDialog = ref(false)
@@ -223,15 +319,10 @@ const loadColleges = async () => {
 }
 
 // 加载学生列表
-const loadStudents = async (collegeId = null) => {
+const loadStudents = async () => {
   loading.value = true
   try {
-    let response
-    if (collegeId) {
-      response = await adminAPI.getStudentsByCollege(collegeId)
-    } else {
-      response = await adminAPI.getStudentList({})
-    }
+    const response = await adminAPI.getStudentList({})
     students.value = response.data || []
   } catch (error) {
     console.error('加载学生列表失败:', error)
@@ -241,45 +332,16 @@ const loadStudents = async (collegeId = null) => {
   }
 }
 
-// 处理学院选择变化
-const handleCollegeChange = (value) => {
-  loadStudents(value)
-}
-
 // 处理搜索
-const handleSearch = async () => {
-  if (!searchKeyword.value) {
-    loadStudents(selectedCollege.value)
-    return
-  }
-  
-  loading.value = true
-  try {
-    const response = await adminAPI.searchStudents(searchKeyword.value)
-    students.value = response.data || []
-  } catch (error) {
-    console.error('搜索学生失败:', error)
-    ElMessage.error('搜索学生失败')
-  } finally {
-    loading.value = false
-  }
+const handleSearch = () => {
+  // 计算属性会自动处理
 }
 
-// 处理添加学生
-const handleAdd = () => {
-  isEditing.value = false
-  // 重置表单
-  Object.assign(formData, {
-    id: null,
-    studentId: '',
-    name: '',
-    collegeId: null,
-    major: '',
-    className: '',
-    grade: null,
-    status: '1'
-  })
-  showAddDialog.value = true
+// 重置搜索
+const handleResetSearch = () => {
+  searchForm.keyword = ''
+  searchForm.collegeId = null
+  searchForm.grade = null
 }
 
 // 处理编辑学生
@@ -310,7 +372,7 @@ const handleSubmit = async () => {
     
     showAddDialog.value = false
     // 重新加载学生列表
-    loadStudents(selectedCollege.value)
+    loadStudents()
   } catch (error) {
     console.error('提交失败:', error)
     ElMessage.error('提交失败')
@@ -342,7 +404,7 @@ const handleImport = async () => {
     if (importResult.value.successCount > 0) {
       ElMessage.success('导入成功')
       // 重新加载学生列表
-      loadStudents(selectedCollege.value)
+      loadStudents()
     }
   } catch (error) {
     console.error('导入失败:', error)
@@ -361,44 +423,118 @@ onMounted(() => {
 
 <style scoped>
 .student-management {
-  padding: 20px;
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: calc(100vh - 48px);
+}
+
+.main-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  padding-left: 12px;
+  border-left: 4px solid #409eff;
 }
 
 .search-and-actions {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef2f7 100%);
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 16px;
 }
 
-.search-section {
+.search-form-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-form {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 16px;
+}
+
+.search-form .el-form-item {
+  margin-bottom: 0;
+}
+
+.search-form .el-input__wrapper,
+.search-form .el-select__wrapper {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.search-form .el-input__wrapper:hover,
+.search-form .el-select__wrapper:hover {
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
+}
+
+.search-form .el-input__wrapper.is-focus,
+.search-form .el-select__wrapper.is-focus {
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+.search-form .el-select {
+  min-width: 180px;
+}
+
+.search-form .el-select__wrapper {
+  min-width: 180px;
 }
 
 .action-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
+}
+
+.action-buttons .el-button {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.action-buttons .el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .student-list-section {
   margin-top: 20px;
 }
 
+.student-list-section .el-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.student-name {
+  font-weight: 500;
+  color: #303133;
+}
+
 .empty-state {
-  margin-top: 30px;
-  text-align: center;
+  margin-top: 40px;
+  padding: 40px 0;
 }
 
 .import-section {
@@ -407,77 +543,103 @@ onMounted(() => {
 
 .file-info {
   margin-top: 15px;
-  padding: 10px;
-  background-color: #f5f7fa;
-  border-radius: 4px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eef2f7 100%);
+  border-radius: 8px;
+  border: 1px solid #e4e7ed;
+  font-weight: 500;
+  color: #606266;
 }
 
 .import-result {
   margin-top: 20px;
-  padding: 15px;
-  background-color: #f0f9eb;
-  border: 1px solid #e1f3d8;
-  border-radius: 4px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f9eb 0%, #e6f7e6 100%);
+  border: 1px solid #c2e7b0;
+  border-radius: 8px;
 }
 
 .import-result h4 {
   margin-top: 0;
+  margin-bottom: 12px;
   color: #67c23a;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.import-result p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #606266;
+}
+
+.import-result h5 {
+  margin: 16px 0 8px 0;
+  color: #f56c6c;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .import-result ul {
-  margin: 10px 0 0 0;
+  margin: 0;
   padding-left: 20px;
 }
 
 .import-result li {
   color: #f56c6c;
-  margin: 5px 0;
+  margin: 4px 0;
+  font-size: 13px;
 }
 
 .dialog-footer {
   width: 100%;
   display: flex;
   justify-content: flex-end;
+  gap: 12px;
 }
 
 /* 响应式设计 */
 @media screen and (max-width: 768px) {
   .student-management {
-    padding: 10px;
+    padding: 12px;
   }
   
   .search-and-actions {
     flex-direction: column;
     align-items: stretch;
+    padding: 16px;
   }
   
-  .search-section {
-    justify-content: stretch;
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
   }
   
-  .el-select,
-  .el-input {
+  .search-form .el-form-item {
+    width: 100%;
+  }
+  
+  .search-form .el-input,
+  .search-form .el-select {
     width: 100% !important;
-    margin-right: 0 !important;
   }
   
   .action-buttons {
+    width: 100%;
     justify-content: center;
   }
   
-  .el-table {
+  .action-buttons .el-button {
+    flex: 1;
+  }
+  
+  .student-list-section .el-table {
     font-size: 12px;
   }
   
-  .el-table th,
-  .el-table td {
-    padding: 8px;
-  }
-  
-  .el-button {
-    font-size: 12px;
-    padding: 4px 8px;
+  .student-list-section .el-table th,
+  .student-list-section .el-table td {
+    padding: 10px 8px;
   }
 }
 </style>

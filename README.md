@@ -6,6 +6,12 @@
 
 创新学分管理系统是一个面向高校的综合学分管理平台，旨在简化学生创新学分申请、审核和统计流程。系统支持学生、辅导员、管理员三种角色，提供从学分申请、审核、统计到档案管理的完整功能闭环。
 
+## 🔗 后端项目
+
+本项目的后端代码已开源：
+
+📦 **后端仓库**: [https://github.com/David10e6/innovation-credit-backend](https://github.com/David10e6/innovation-credit-backend)
+
 ## 🏗️ 技术栈
 
 - **前端框架**: Vue 3.5.29
